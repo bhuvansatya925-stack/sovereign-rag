@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment variables / secrets
+.env
+.env.*
+
+# ChromaDB / local vector databases
+data/chroma/
+data/benchmark/chroma/
+data/scaling/chroma/
+
+# Uploaded/local documents
+data/uploads/
+
+# Generated scaling dataset
+data/scaling/documents/
+
+# Generated benchmark datasets
+data/benchmark/documents/
+
+# OS / editor files
+.DS_Store
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Allow the safe environment template
+!.env.example

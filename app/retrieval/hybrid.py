@@ -9,42 +9,95 @@ class HybridRetriever:
     def search(self, question: str, n_results: int = 5):
         query_embedding = self.embedder.encode([question])[0]
 
-        # Retrieve a larger candidate set first.
+        # Semantic candidates.
         candidate_count = max(n_results * 4, 20)
 
-        results = self.store.search(
+        semantic_results = self.store.search(
             query_embedding,
             candidate_count,
         )
 
-        documents = results["documents"][0]
-        metadatas = results["metadatas"][0]
-        distances = results["distances"][0]
+        documents = semantic_results["documents"][0]
+        metadatas = semantic_results["metadatas"][0]
+        distances = semantic_results["distances"][0]
 
-        # Extract useful exact identifiers from the question.
+        # Extract exact identifiers from the question.
+        question_upper = question.upper()
+
         equipment_tags = re.findall(
-            r"\b[A-Z]{2}-\d{3,6}\b",
-            question.upper(),
+            r"\b[A-Z]{2}-\d{6}\b",
+            question_upper,
         )
 
         document_ids = re.findall(
-            r"\bDOC-\d{4,6}\b",
-            question.upper(),
+            r"\bDOC-\d{6}\b",
+            question_upper,
         )
 
         reference_codes = re.findall(
             r"\bREF-\d{4,6}-\d{4,6}\b",
-            question.upper(),
+            question_upper,
         )
 
-        ranked = []
+        # Keep semantic candidates.
+        candidates = {}
 
         for document, metadata, distance in zip(
             documents,
             metadatas,
             distances,
         ):
-            score = float(distance)
+            source = metadata.get("source", "")
+
+            candidates[source] = {
+                "document": document,
+                "metadata": metadata,
+                "distance": float(distance),
+                "score": float(distance),
+            }
+
+        # Exact metadata lookup.
+        exact_matches = []
+
+        if equipment_tags:
+            exact_matches.extend(
+                self.store.get_by_metadata(
+                    "equipment_tag",
+                    equipment_tags,
+                )
+            )
+
+        if document_ids:
+            exact_matches.extend(
+                self.store.get_by_metadata(
+                    "document_id",
+                    document_ids,
+                )
+            )
+
+        if reference_codes:
+            exact_matches.extend(
+                self.store.get_by_metadata(
+                    "reference_code",
+                    reference_codes,
+                )
+            )
+
+        # Add exact matches with a very strong score.
+        for item in exact_matches:
+            metadata = item["metadata"]
+            source = metadata.get("source", "")
+
+            candidates[source] = {
+                "document": item["document"],
+                "metadata": metadata,
+                "distance": item.get("distance", 0.0),
+                "score": -1.0,
+            }
+
+        # Additional identifier scoring.
+        for candidate in candidates.values():
+            metadata = candidate["metadata"]
 
             equipment_tag = str(
                 metadata.get("equipment_tag", "")
@@ -58,32 +111,28 @@ class HybridRetriever:
                 metadata.get("reference_code", "")
             ).upper()
 
-            # Lower cosine distance is better.
-            # Apply strong bonuses for exact identifier matches.
             if equipment_tag in equipment_tags:
-                score -= 0.50
+                candidate["score"] -= 0.50
 
             if document_id in document_ids:
-                score -= 0.50
+                candidate["score"] -= 0.50
 
             if reference_code in reference_codes:
-                score -= 0.50
+                candidate["score"] -= 0.50
 
-            ranked.append(
-                (
-                    score,
-                    document,
-                    metadata,
-                    distance,
-                )
-            )
-
-        ranked.sort(key=lambda item: item[0])
-
-        ranked = ranked[:n_results]
+        ranked = sorted(
+            candidates.values(),
+            key=lambda item: item["score"],
+        )[:n_results]
 
         return {
-            "documents": [[item[1] for item in ranked]],
-            "metadatas": [[item[2] for item in ranked]],
-            "distances": [[item[3] for item in ranked]],
+            "documents": [
+                [item["document"] for item in ranked]
+            ],
+            "metadatas": [
+                [item["metadata"] for item in ranked]
+            ],
+            "distances": [
+                [item["distance"] for item in ranked]
+            ],
         }

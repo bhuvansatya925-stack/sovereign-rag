@@ -33,5 +33,38 @@ class VectorStore:
             n_results=n_results,
         )
 
+    def get_by_metadata(
+        self,
+        field: str,
+        values: list[str],
+    ):
+        results = []
+
+        for value in values:
+            matches = self.collection.get(
+                where={field: value},
+                include=[
+                    "documents",
+                    "metadatas",
+                ],
+            )
+
+            documents = matches.get("documents", [])
+            metadatas = matches.get("metadatas", [])
+
+            for document, metadata in zip(
+                documents,
+                metadatas,
+            ):
+                results.append(
+                    {
+                        "document": document,
+                        "metadata": metadata,
+                        "distance": 0.0,
+                    }
+                )
+
+        return results
+
     def count(self) -> int:
         return self.collection.count()

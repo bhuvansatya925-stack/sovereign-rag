@@ -39,6 +39,19 @@ class HybridRetriever:
             question_upper,
         )
 
+        # Detect an explicitly mentioned document filename.
+        source_matches = re.findall(
+            r"\b[\w.-]+\.(?:pdf|docx|odt|txt|md)\b",
+            question,
+            flags=re.IGNORECASE,
+        )
+
+        requested_source = (
+            source_matches[0]
+            if source_matches
+            else None
+        )
+
         # Keep semantic candidates.
         candidates = {}
 
@@ -57,11 +70,20 @@ class HybridRetriever:
                 chunk_id,
             )
 
+            score = float(distance)
+
+            # Strongly prioritize an explicitly requested source.
+            if (
+                requested_source
+                and source.lower() == requested_source.lower()
+            ):
+                score -= 1.0
+
             candidates[candidate_key] = {
                 "document": document,
                 "metadata": metadata,
                 "distance": float(distance),
-                "score": float(distance),
+                "score": score,
             }
 
         # Exact metadata lookup.

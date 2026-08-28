@@ -42,14 +42,22 @@ class HybridRetriever:
         # Keep semantic candidates.
         candidates = {}
 
-        for document, metadata, distance in zip(
-            documents,
-            metadatas,
-            distances,
+        for index, (document, metadata, distance) in enumerate(
+            zip(
+                documents,
+                metadatas,
+                distances,
+            )
         ):
             source = metadata.get("source", "")
+            chunk_id = metadata.get("chunk_id", index)
 
-            candidates[source] = {
+            candidate_key = (
+                source,
+                chunk_id,
+            )
+
+            candidates[candidate_key] = {
                 "document": document,
                 "metadata": metadata,
                 "distance": float(distance),

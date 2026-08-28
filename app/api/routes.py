@@ -62,6 +62,7 @@ async def upload_document(
     supported = {
         ".pdf",
         ".docx",
+        ".odt",
         ".txt",
         ".md",
         ".png",

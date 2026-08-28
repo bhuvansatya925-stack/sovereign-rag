@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from docx import Document
+from odf import text as odf_text
+from odf.opendocument import load as load_odt
 from pypdf import PdfReader
 import pymupdf
 
@@ -103,6 +105,37 @@ def load_docx_pages(path: Path) -> list[DocumentPage]:
     ]
 
 
+def load_odt_pages(path: Path) -> list[DocumentPage]:
+    """Extract ODT text content."""
+
+    document = load_odt(str(path))
+
+    paragraphs = []
+
+    for element in document.getElementsByType(odf_text.P):
+        text = "".join(
+            node.data
+            for node in element.childNodes
+            if getattr(node, "data", None)
+        ).strip()
+
+        if text:
+            paragraphs.append(text)
+
+    text = "\n".join(paragraphs).strip()
+
+    if not text:
+        return []
+
+    return [
+        DocumentPage(
+            text=text,
+            page=1,
+            ocr_used=False,
+        )
+    ]
+
+
 def load_txt_pages(path: Path) -> list[DocumentPage]:
     """Read TXT/Markdown content."""
 
@@ -157,6 +190,9 @@ def load_document_pages(path: Path) -> list[DocumentPage]:
 
     if suffix == ".docx":
         return load_docx_pages(path)
+
+    if suffix == ".odt":
+        return load_odt_pages(path)
 
     if suffix in {".txt", ".md"}:
         return load_txt_pages(path)

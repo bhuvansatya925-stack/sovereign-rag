@@ -1,5 +1,4 @@
-import React from 'react';
-import { X, Download, FileText, Presentation, FileSpreadsheet, Image as ImageIcon, CheckCircle, ShieldCheck } from 'lucide-react';
+import { X, Download, FileText, Presentation, FileSpreadsheet, Image as ImageIcon, ShieldCheck } from 'lucide-react';
 
 export default function RightArtifactSidebar({ selectedArtifact, onClose }) {
   if (!selectedArtifact) return null;

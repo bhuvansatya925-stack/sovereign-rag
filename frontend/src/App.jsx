@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Sidebar from './components/layout/Sidebar';
 import RightArtifactSidebar from './components/layout/RightArtifactSidebar';
 import BottomChatBar from './components/main/BottomChatBar';

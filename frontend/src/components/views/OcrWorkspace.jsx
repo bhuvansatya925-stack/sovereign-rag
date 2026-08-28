@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ScanEye } from 'lucide-react';
 import AgentMessageThread from '../main/AgentMessageThread';
 import BottomChatBar from '../main/BottomChatBar';

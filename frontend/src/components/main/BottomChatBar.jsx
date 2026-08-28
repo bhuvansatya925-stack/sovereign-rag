@@ -1,18 +1,10 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { 
-  Plus, 
-  Database, 
-  ChevronDown, 
-  ArrowUp, 
-  FileText, 
-  Image as ImageIcon, 
-  Video, 
-  Music, 
-  Layout, 
-  Search, 
-  GraduationCap, 
-  FolderDown, 
-  X 
+import { useRef, useState, useEffect } from 'react';
+import {
+  Plus,
+  ChevronDown,
+  ArrowUp,
+  FileText,
+  X,
 } from 'lucide-react';
 import { AVAILABLE_MODELS } from '../../data/mockData';
 
@@ -23,23 +15,17 @@ export default function BottomChatBar({
   loading, 
   selectedModel, 
   setSelectedModel,
-  isSpecializedView = false, 
-  placeholder = "Ask anything, or task a local agent..." 
+  placeholder = "Ask anything, or task a local agent..."
 }) {
-  const [showAttachMenu, setShowAttachMenu] = useState(false);
   const [showModelMenu, setShowModelMenu] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState([]);
   
-  const attachMenuRef = useRef(null);
   const modelMenuRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Global click-outside listener to close tool and model menus
+  // Global click-outside listener to close the model menu
   useEffect(() => {
     function handleClickOutside(event) {
-      if (attachMenuRef.current && !attachMenuRef.current.contains(event.target)) {
-        setShowAttachMenu(false);
-      }
       if (modelMenuRef.current && !modelMenuRef.current.contains(event.target)) {
         setShowModelMenu(false);
       }
@@ -62,7 +48,6 @@ export default function BottomChatBar({
       })),
     ]);
 
-    setShowAttachMenu(false);
     e.target.value = '';
   };
 
@@ -77,7 +62,6 @@ export default function BottomChatBar({
         onSendMessage(prompt, attachedFiles);
         setPrompt('');
         setAttachedFiles([]);
-        setShowAttachMenu(false);
         setShowModelMenu(false);
       }
     }
@@ -113,109 +97,25 @@ export default function BottomChatBar({
 
         <div className="flex items-center justify-between pt-2 border-t border-[#2c2c2c] relative">
           <div className="flex items-center gap-2">
-            {/* Plus Context Menu Button */}
-            <div className="relative" ref={attachMenuRef}>
+            {/* Plus File Upload Button */}
+            <div className="relative">
               <button
                 type="button"
-                onClick={() => {
-                  setShowAttachMenu(!showAttachMenu);
-                  setShowModelMenu(false);
-                }}
+                title="Upload files"
+                onClick={() => fileInputRef.current?.click()}
                 className="w-8 h-8 rounded-lg hover:bg-[#2c2c2c] text-neutral-400 hover:text-white flex items-center justify-center transition"
               >
                 <Plus size={18} />
               </button>
 
-              {/* Gemini Style Action Menu for Main Chat */}
-              {showAttachMenu && !isSpecializedView && (
-                <div className="absolute bottom-11 left-0 bg-[#1e1e1e] border border-[#2e2e2e] rounded-2xl shadow-2xl p-1.5 w-56 flex flex-col gap-0.5 z-50 animate-in fade-in zoom-in-95 duration-100">
-                  <button
-                    onClick={() => fileInputRef.current.click()}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#282828] text-neutral-200 text-xs text-left transition"
-                  >
-                    <FolderDown size={15} className="text-neutral-400" />
-                    <span>Upload files</span>
-                  </button>
-                  <button
-                    onClick={() => fileInputRef.current.click()}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#282828] text-neutral-200 text-xs text-left transition"
-                  >
-                    <Database size={15} className="text-neutral-400" />
-                    <span>Add from On-Prem Storage</span>
-                  </button>
-
-                  <div className="border-t border-[#2a2a2a] my-1" />
-
-                  <button
-                    onClick={() => { setPrompt("Create a high-resolution P&ID schematic diagram"); setShowAttachMenu(false); }}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#282828] text-neutral-200 text-xs text-left transition"
-                  >
-                    <ImageIcon size={15} className="text-neutral-400" />
-                    <span>Create image</span>
-                  </button>
-                  <button
-                    onClick={() => { setPrompt("Generate 3D walkthrough video of turbine module"); setShowAttachMenu(false); }}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#282828] text-neutral-200 text-xs text-left transition"
-                  >
-                    <Video size={15} className="text-neutral-400" />
-                    <span>Create video</span>
-                  </button>
-                  <button
-                    onClick={() => { setPrompt("Generate acoustic frequency audio profile"); setShowAttachMenu(false); }}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#282828] text-neutral-200 text-xs text-left transition"
-                  >
-                    <Music size={15} className="text-neutral-400" />
-                    <span>Create music</span>
-                  </button>
-                  <button
-                    onClick={() => { setPrompt("Open engineering canvas editor"); setShowAttachMenu(false); }}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#282828] text-neutral-200 text-xs text-left transition"
-                  >
-                    <Layout size={15} className="text-neutral-400" />
-                    <span>Canvas</span>
-                  </button>
-
-                  <div className="border-t border-[#2a2a2a] my-1" />
-
-                  <button
-                    onClick={() => { setPrompt("Perform deep research on ASTM A106 standards"); setShowAttachMenu(false); }}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#282828] text-neutral-200 text-xs text-left transition"
-                  >
-                    <Search size={15} className="text-neutral-400" />
-                    <span>Deep Research</span>
-                  </button>
-                  <button
-                    onClick={() => { setPrompt("Explain ASME B31.3 Section 304 step-by-step"); setShowAttachMenu(false); }}
-                    className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#282828] text-neutral-200 text-xs text-left transition"
-                  >
-                    <GraduationCap size={15} className="text-neutral-400" />
-                    <span>Guided Learning</span>
-                  </button>
-                </div>
-              )}
-
-              {/* Simple File Attachment for Specialized Views */}
-              {showAttachMenu && isSpecializedView && (
-                <div className="absolute bottom-11 left-0 bg-[#1e1e1e] border border-[#2e2e2e] rounded-xl shadow-2xl p-1.5 w-48 z-50">
-                  <button
-                    onClick={() => fileInputRef.current.click()}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-[#282828] text-neutral-200 text-xs text-left w-full transition"
-                  >
-                    <FolderDown size={14} className="text-blue-400" /> Upload Local File
-                  </button>
-                </div>
-              )}
-
-              <input type="file" ref={fileInputRef} onChange={handleFileUpload} multiple className="hidden" />
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                multiple
+                className="hidden"
+              />
             </div>
-
-            <button
-              title="Ground with Local Knowledge Base"
-              className="px-2.5 py-1 rounded-md hover:bg-[#2c2c2c] text-neutral-400 hover:text-white text-xs flex items-center gap-1.5 border border-[#2e2e2e] transition"
-            >
-              <Database size={13} />
-              <span>SOP Grounding</span>
-            </button>
           </div>
 
           <div className="flex items-center gap-3">
@@ -224,8 +124,7 @@ export default function BottomChatBar({
               <button
                 onClick={() => {
                   setShowModelMenu(!showModelMenu);
-                  setShowAttachMenu(false);
-                }}
+                          }}
                 className="flex items-center gap-1.5 text-xs text-neutral-300 bg-[#171717] hover:bg-[#1f1f1f] px-2.5 py-1.5 rounded-lg border border-[#2e2e2e] transition"
               >
                 <span className="text-neutral-500 font-mono text-[11px]">Model:</span>
@@ -264,8 +163,7 @@ export default function BottomChatBar({
                 onSendMessage(prompt, attachedFiles);
                 setPrompt('');
                 setAttachedFiles([]);
-                setShowAttachMenu(false);
-                setShowModelMenu(false);
+                        setShowModelMenu(false);
               }}
               className={`w-8 h-8 rounded-lg flex items-center justify-center transition ${
                 prompt.trim() || attachedFiles.length > 0

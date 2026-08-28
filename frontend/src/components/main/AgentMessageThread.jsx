@@ -1,4 +1,3 @@
-import React from 'react';
 import { FileText, Presentation, FileSpreadsheet, ExternalLink, Download, Sparkles } from 'lucide-react';
 import ThinkingOrb from '../common/ThinkingOrb';
 

@@ -1,7 +1,5 @@
-import React from 'react';
 import { 
   MessageSquare, 
-  ScanEye, 
   FileSpreadsheet, 
   Code2, 
   Plus, 
@@ -91,19 +89,6 @@ export default function Sidebar({
           >
             <MessageSquare size={15} className="shrink-0" />
             {isOpen && <span>Chat</span>}
-          </button>
-
-          <button
-            onClick={() => setActiveView('ocr')}
-            className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs transition cursor-pointer ${
-              activeView === 'ocr'
-                ? 'bg-[#222222] text-white font-medium border border-[#333333]'
-                : 'text-neutral-400 hover:bg-[#1a1a1a] hover:text-neutral-200'
-            } ${!isOpen && 'justify-center px-0 w-10 h-10 mx-auto'}`}
-            title="OCR & Drawings"
-          >
-            <ScanEye size={15} className="shrink-0" />
-            {isOpen && <span>OCR & Drawings</span>}
           </button>
 
           <button

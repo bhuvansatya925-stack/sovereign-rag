@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function ThinkingOrb({ label = "Thinking...", size = 32 }) {
   const canvasRef = useRef(null);

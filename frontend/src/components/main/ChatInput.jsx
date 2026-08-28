@@ -1,5 +1,4 @@
-import React from 'react';
-import { Plus, Database, ChevronDown, ArrowUp } from 'lucide-react';
+import { Plus, ChevronDown, ArrowUp } from 'lucide-react';
 
 export default function ChatInput({ prompt, setPrompt, selectedModel }) {
   return (
@@ -20,13 +19,7 @@ export default function ChatInput({ prompt, setPrompt, selectedModel }) {
           >
             <Plus size={18} />
           </button>
-          <button
-            title="Ground with Local Knowledge Base"
-            className="px-2.5 py-1 rounded-md hover:bg-[#2c2c2c] text-neutral-400 hover:text-white text-xs flex items-center gap-1.5 border border-[#2e2e2e] transition"
-          >
-            <Database size={13} />
-            <span>SOP Grounding</span>
-          </button>
+
         </div>
 
         <div className="flex items-center gap-3">

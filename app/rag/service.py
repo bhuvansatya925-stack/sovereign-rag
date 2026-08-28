@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from app.config import VECTOR_STORE_BACKEND
+from app.database.postgres import PostgreSQLVectorStore
 from app.embeddings.model import EmbeddingModel
 from app.generation.gemini import GeminiGenerator
 from app.interfaces.embedding import EmbeddingProvider
@@ -23,10 +25,16 @@ class RAGService:
     ) -> None:
         self.embedder = embedder or EmbeddingModel()
 
-        self.vector_store = vector_store or VectorStore(
-            path=vector_store_path,
-            collection_name=collection_name,
-        )
+        if vector_store is not None:
+            self.vector_store = vector_store
+        elif VECTOR_STORE_BACKEND == "postgres":
+            self.vector_store = PostgreSQLVectorStore()
+            self.vector_store.initialize()
+        else:
+            self.vector_store = VectorStore(
+                path=vector_store_path,
+                collection_name=collection_name,
+            )
 
         self.indexer = RAGIndexer(
             embedder=self.embedder,

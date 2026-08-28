@@ -1,3 +1,5 @@
+import os
+
 from pathlib import Path
 
 # Project root
@@ -12,6 +14,9 @@ CHROMA_DIR = DATA_DIR / "chroma"
 # RAG settings
 CHUNK_SIZE = 800
 CHUNK_OVERLAP = 120
+
+# Vector storage backend
+VECTOR_STORE_BACKEND = os.getenv("SOVEREIGN_VECTOR_STORE", "chroma").lower()
 
 # Embedding model
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"

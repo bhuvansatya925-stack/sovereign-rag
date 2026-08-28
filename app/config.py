@@ -1,6 +1,10 @@
 import os
-
 from pathlib import Path
+
+from dotenv import load_dotenv
+
+
+load_dotenv(override=True)
 
 # Project root
 BASE_DIR = Path(__file__).resolve().parent.parent

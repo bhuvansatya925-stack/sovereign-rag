@@ -2,6 +2,7 @@ from pathlib import Path
 import time
 
 from app.chunking.chunker import chunk_text
+from app.metadata.parser import extract_metadata
 from app.embeddings.model import EmbeddingModel
 from app.vectorstore.store import VectorStore
 
@@ -53,10 +54,13 @@ def main():
             for chunk in chunks
         ]
 
+        document_metadata = extract_metadata(text)
+
         metadatas = [
             {
                 "source": path.name,
                 "chunk_id": chunk.chunk_id,
+                **document_metadata,
             }
             for chunk in chunks
         ]

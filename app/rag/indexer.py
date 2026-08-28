@@ -2,7 +2,8 @@ from pathlib import Path
 
 from app.chunking.chunker import chunk_text
 from app.embeddings.model import EmbeddingModel
-from app.ingestion.loader import load_document
+from app.ingestion.loader import load_document_pages
+from app.metadata.parser import extract_metadata
 from app.vectorstore.store import VectorStore
 
 
@@ -12,41 +13,61 @@ class RAGIndexer:
         self.vector_store = VectorStore()
 
     def index_document(self, path: Path) -> int:
-        """Extract, chunk, embed, and store a document."""
+        """Extract, OCR, chunk, embed, and store a document."""
 
-        text = load_document(path)
+        path = Path(path)
 
-        if not text:
+        pages = load_document_pages(path)
+
+        if not pages:
             return 0
 
-        chunks = chunk_text(text)
+        total_chunks = 0
 
-        if not chunks:
-            return 0
+        for document_page in pages:
+            text = document_page.text.strip()
 
-        texts = [chunk.text for chunk in chunks]
-        embeddings = self.embedder.encode(texts)
+            if not text:
+                continue
 
-        document_name = path.name
+            chunks = chunk_text(text)
 
-        ids = [
-            f"{document_name}:{chunk.chunk_id}"
-            for chunk in chunks
-        ]
+            if not chunks:
+                continue
 
-        metadatas = [
-            {
-                "source": document_name,
-                "chunk_id": chunk.chunk_id,
-            }
-            for chunk in chunks
-        ]
+            texts = [chunk.text for chunk in chunks]
+            embeddings = self.embedder.encode(texts)
 
-        self.vector_store.add_documents(
-            ids=ids,
-            texts=texts,
-            embeddings=embeddings,
-            metadatas=metadatas,
-        )
+            document_metadata = extract_metadata(text)
 
-        return len(chunks)
+            metadatas = [
+                {
+                    "source": path.name,
+                    "file_type": path.suffix.lower().lstrip("."),
+                    "page": document_page.page,
+                    "ocr_used": document_page.ocr_used,
+                    "chunk_id": chunk.chunk_id,
+                    **document_metadata,
+                }
+                for chunk in chunks
+            ]
+
+            ids = [
+                (
+                    f"{path.name}:"
+                    f"page-{document_page.page}:"
+                    f"chunk-{chunk.chunk_id}"
+                )
+                for chunk in chunks
+            ]
+
+            self.vector_store.add_documents(
+                ids=ids,
+                texts=texts,
+                embeddings=embeddings,
+                metadatas=metadatas,
+            )
+
+            total_chunks += len(chunks)
+
+        return total_chunks

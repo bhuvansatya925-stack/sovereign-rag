@@ -18,6 +18,7 @@ class VectorStore(Protocol):
         self,
         embedding,
         n_results: int = 5,
+        source: str | None = None,
     ):
         """Search for semantically similar chunks."""
         ...
@@ -28,6 +29,13 @@ class VectorStore(Protocol):
         values: list[str],
     ):
         """Retrieve chunks matching exact metadata values."""
+        ...
+
+    def get_by_source(
+        self,
+        source: str,
+    ):
+        """Retrieve all chunks belonging to one source."""
         ...
 
     def count(self) -> int:

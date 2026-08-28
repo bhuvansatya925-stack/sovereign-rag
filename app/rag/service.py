@@ -1,6 +1,9 @@
 from pathlib import Path
 
+from app.embeddings.model import EmbeddingModel
 from app.generation.gemini import GeminiGenerator
+from app.interfaces.embedding import EmbeddingProvider
+from app.interfaces.generator import Generator
 from app.rag.indexer import RAGIndexer
 from app.rag.pipeline import RAGPipeline
 from app.retrieval.hybrid import HybridRetriever
@@ -14,16 +17,20 @@ class RAGService:
         self,
         vector_store_path=None,
         collection_name="sovereign_rag",
+        embedder: EmbeddingProvider | None = None,
+        generator: Generator | None = None,
+        vector_store: VectorStore | None = None,
     ) -> None:
-        self.indexer = RAGIndexer()
+        self.embedder = embedder or EmbeddingModel()
 
-        # Use the indexer's embedding model so ingestion and
-        # retrieval always use the same embedding model.
-        self.embedder = self.indexer.embedder
-
-        self.vector_store = VectorStore(
+        self.vector_store = vector_store or VectorStore(
             path=vector_store_path,
             collection_name=collection_name,
+        )
+
+        self.indexer = RAGIndexer(
+            embedder=self.embedder,
+            vector_store=self.vector_store,
         )
 
         self.retriever = HybridRetriever(
@@ -31,7 +38,7 @@ class RAGService:
             self.embedder,
         )
 
-        self.generator = GeminiGenerator()
+        self.generator = generator or GeminiGenerator()
 
         self.pipeline = RAGPipeline(
             self.retriever,

@@ -66,5 +66,35 @@ class VectorStore:
 
         return results
 
+    def get_by_source(self, source: str):
+        """Return all indexed chunks belonging to one source."""
+
+        matches = self.collection.get(
+            where={"source": source},
+            include=[
+                "documents",
+                "metadatas",
+            ],
+        )
+
+        documents = matches.get("documents", [])
+        metadatas = matches.get("metadatas", [])
+
+        results = []
+
+        for document, metadata in zip(
+            documents,
+            metadatas,
+        ):
+            results.append(
+                {
+                    "text": document,
+                    "metadata": metadata,
+                    "distance": 0.0,
+                }
+            )
+
+        return results
+
     def count(self) -> int:
         return self.collection.count()

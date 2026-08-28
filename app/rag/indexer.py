@@ -3,14 +3,19 @@ from pathlib import Path
 from app.chunking.chunker import chunk_text
 from app.embeddings.model import EmbeddingModel
 from app.ingestion.loader import load_document_pages
+from app.interfaces.embedding import EmbeddingProvider
 from app.metadata.parser import extract_metadata
 from app.vectorstore.store import VectorStore
 
 
 class RAGIndexer:
-    def __init__(self) -> None:
-        self.embedder = EmbeddingModel()
-        self.vector_store = VectorStore()
+    def __init__(
+        self,
+        embedder: EmbeddingProvider | None = None,
+        vector_store: VectorStore | None = None,
+    ) -> None:
+        self.embedder = embedder or EmbeddingModel()
+        self.vector_store = vector_store or VectorStore()
 
     def index_document(self, path: Path) -> int:
         """Extract, OCR, chunk, embed, and store a document."""

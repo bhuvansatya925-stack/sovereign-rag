@@ -27,11 +27,23 @@ class VectorStore:
             metadatas=metadatas,
         )
 
-    def search(self, embedding, n_results: int = 5):
-        return self.collection.query(
-            query_embeddings=[embedding.tolist()],
-            n_results=n_results,
-        )
+    def search(
+        self,
+        embedding,
+        n_results: int = 5,
+        source: str | None = None,
+    ):
+        kwargs = {
+            "query_embeddings": [embedding.tolist()],
+            "n_results": n_results,
+        }
+
+        if source:
+            kwargs["where"] = {
+                "source": source,
+            }
+
+        return self.collection.query(**kwargs)
 
     def get_by_metadata(
         self,

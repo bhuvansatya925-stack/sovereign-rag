@@ -13,6 +13,7 @@ router = APIRouter(prefix="/api")
 class ChatRequest(BaseModel):
     question: str
     n_results: int = 3
+    source: str | None = None
 
 
 _service = None
@@ -137,6 +138,7 @@ def chat(request: ChatRequest):
         result = service.ask(
             request.question,
             n_results=request.n_results,
+            source=request.source,
         )
 
         sources = []

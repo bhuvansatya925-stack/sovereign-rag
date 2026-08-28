@@ -16,6 +16,7 @@ class RAGPipeline:
         self,
         question: str,
         n_results: int = 5,
+        source: str | None = None,
     ) -> list[dict]:
         """Retrieve relevant document contexts."""
 
@@ -25,6 +26,7 @@ class RAGPipeline:
         results = self.retriever.search(
             question.strip(),
             n_results,
+            source=source,
         )
 
         documents = results["documents"][0]
@@ -52,6 +54,7 @@ class RAGPipeline:
         self,
         question: str,
         n_results: int = 3,
+        source: str | None = None,
     ) -> dict:
         """Retrieve relevant context and generate an answer."""
 
@@ -67,6 +70,7 @@ class RAGPipeline:
         contexts = self.retrieve(
             question,
             n_results,
+            source=source,
         )
 
         if not contexts:

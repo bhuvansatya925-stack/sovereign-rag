@@ -183,7 +183,10 @@ export default function App() {
           },
           body: JSON.stringify({
             question: q,
-            n_results: 3
+            n_results: 3,
+            source: attachedFiles.length > 0
+              ? attachedFiles[0].name
+              : null
           })
         }
       );

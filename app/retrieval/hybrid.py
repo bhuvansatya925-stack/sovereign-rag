@@ -6,20 +6,55 @@ class HybridRetriever:
         self.store = store
         self.embedder = embedder
 
-    def search(self, question: str, n_results: int = 5):
+    def search(
+        self,
+        question: str,
+        n_results: int = 5,
+        source: str | None = None,
+    ):
         query_embedding = self.embedder.encode([question])[0]
 
-        # Semantic candidates.
-        candidate_count = max(n_results * 4, 20)
+        # When a source is explicitly selected, retrieve all of its
+        # chunks so semantic search cannot discard the relevant section.
+        if source:
+            source_results = self.store.get_by_source(source)
 
-        semantic_results = self.store.search(
-            query_embedding,
-            candidate_count,
-        )
+            documents = [
+                item["text"]
+                for item in source_results
+            ]
 
-        documents = semantic_results["documents"][0]
-        metadatas = semantic_results["metadatas"][0]
-        distances = semantic_results["distances"][0]
+            metadatas = [
+                item["metadata"]
+                for item in source_results
+            ]
+
+            # get_by_source does not calculate distances, so calculate
+            # cosine distance against every chunk here.
+            if documents:
+                chunk_embeddings = self.embedder.encode(documents)
+
+                distances = [
+                    1.0 - float(
+                        query_embedding @ chunk_embedding
+                    )
+                    for chunk_embedding in chunk_embeddings
+                ]
+            else:
+                distances = []
+
+        else:
+            # Normal semantic retrieval across the whole corpus.
+            candidate_count = max(n_results * 4, 20)
+
+            semantic_results = self.store.search(
+                query_embedding,
+                candidate_count,
+            )
+
+            documents = semantic_results["documents"][0]
+            metadatas = semantic_results["metadatas"][0]
+            distances = semantic_results["distances"][0]
 
         # Extract exact identifiers from the question.
         question_upper = question.upper()
@@ -52,7 +87,6 @@ class HybridRetriever:
             else None
         )
 
-        # Keep semantic candidates.
         candidates = {}
 
         for index, (document, metadata, distance) in enumerate(
@@ -62,20 +96,22 @@ class HybridRetriever:
                 distances,
             )
         ):
-            source = metadata.get("source", "")
+            document_source = metadata.get("source", "")
             chunk_id = metadata.get("chunk_id", index)
 
             candidate_key = (
-                source,
+                document_source,
+                metadata.get("page"),
                 chunk_id,
             )
 
             score = float(distance)
 
-            # Strongly prioritize an explicitly requested source.
+            # Strongly prioritize an explicitly mentioned source.
             if (
                 requested_source
-                and source.lower() == requested_source.lower()
+                and document_source.lower()
+                == requested_source.lower()
             ):
                 score -= 1.0
 
@@ -116,9 +152,16 @@ class HybridRetriever:
         # Add exact matches with a very strong score.
         for item in exact_matches:
             metadata = item["metadata"]
-            source = metadata.get("source", "")
+            document_source = metadata.get("source", "")
+            chunk_id = metadata.get("chunk_id")
 
-            candidates[source] = {
+            candidate_key = (
+                document_source,
+                metadata.get("page"),
+                chunk_id,
+            )
+
+            candidates[candidate_key] = {
                 "document": item["document"],
                 "metadata": metadata,
                 "distance": item.get("distance", 0.0),

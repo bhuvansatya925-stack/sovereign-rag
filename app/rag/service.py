@@ -67,12 +67,14 @@ class RAGService:
         self,
         question: str,
         n_results: int = 3,
+        source: str | None = None,
     ) -> dict:
         """Ask a question against the indexed documents."""
 
         return self.pipeline.ask(
             question,
             n_results=n_results,
+            source=source,
         )
 
     def count(self) -> int:
